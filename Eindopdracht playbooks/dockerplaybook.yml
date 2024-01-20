@@ -1,0 +1,50 @@
+---
+- name: Install and configure Docker on Node
+  hosts: 10.3.0.19
+  become: true
+
+  tasks:
+    - name: Update apt
+      apt:
+        update_cache: yes
+
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker apt repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Install pip3
+      apt:
+        name: python3-pip
+        state: present   
+
+    - name: Install Docker compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
