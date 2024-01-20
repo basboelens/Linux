@@ -1,0 +1,52 @@
+- name: Install and configure Node Exporter and rsyslog on all nodes
+  hosts: all
+  become: true
+
+  tasks:
+                - name: Download Node Exporter from GitHub
+                  get_url:
+                           url: "https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz"
+                           dest: "/tmp/node_exporter.tar.gz"
+
+                - name: Unarchive Node Exporter from .tar.gz file
+                  unarchive:
+                              src: "/tmp/node_exporter.tar.gz"
+                              dest: "/opt/"
+                              remote_src: yes
+
+                - name: Copy node_exporter.service to nodes
+                  copy:
+                            src: /etc/ansible/node_exporter.service
+                            dest: /usr/lib/systemd/system/node_exporter.service
+                            owner: basenhugoansible
+                            mode: 644
+
+                - name: Reload daemon and start the recently placed node_exporter.service
+                  systemd:
+                               daemon_reload: true
+                               name: node_exporter
+                               enabled: yes
+                               notify: Restart Node Exporter
+
+                - name: Install rsyslog on node
+                  package:
+                               name: rsyslog
+                               state: present
+
+                - name: Configure rsyslog to make it log to the masterserver
+                  lineinfile:
+                           path: /etc/rsyslog.conf
+                           line: "*.* @@10.3.0.22:514"
+                           state: present
+                           notify: Restart Syslog
+
+  handlers:
+                - name: Restart Node Exporter
+                  systemd:
+                               name: node_exporter
+                               state: restarted
+
+                - name: Restart Syslog
+                  systemd:
+                               name: rsyslog
+                               state: restarted

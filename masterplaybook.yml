@@ -1,0 +1,30 @@
+- name: Install and configure rsyslog and prometheus on masterserver
+  hosts: localhost
+  become: true
+
+  tasks:
+           - name: Install rsyslog and prometheus
+             package:
+                           name:
+                             - rsyslog
+                             - prometheus
+                           state: present
+
+           - name: Configure rsyslog to log clients to /var/log/remote_hosts
+             blockinfile:
+                        path: /etc/rsyslog.conf
+                        block: |
+                           $IncludeConfig /etc/rsyslog.d/*.conf
+                           $template DynFile,"/var/log/remote_hosts/%HOSTNAME%/%PROGRAMNAME%.log"
+                           *.* ?DynFile
+
+           - name: Generate prometheus file for scraping
+             template:
+                          src: /etc/ansible//prometheus.yml.j2
+                          dest: /etc/prometheus/prometheus.yml
+
+           - name: Install transport package
+             apt:
+                          name: apt-transport-https
+                          state: present
+                          update_cache: yes
