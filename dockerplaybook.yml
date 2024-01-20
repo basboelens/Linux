@@ -1,6 +1,6 @@
 ---
 - name: Install and configure Docker on Node
-  hosts: 10.3.0.19
+  hosts: 10.3.0.23
   become: true
 
   tasks:
