@@ -48,3 +48,9 @@
       service:
         name: docker
         state: started
+
+    - name: Pull Nginx Docker image
+      command: "docker pull nginx:latest"
+
+    - name: Start Nginx container
+      command: "docker run -d --name my_nginx_container -p 80:80 nginx:latest"
